@@ -2,8 +2,10 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const orderModel = require("../models/orderModel");
 const cartModel = require("../models/cartModel");
 const productModel = require("../models/productModel");
+const userModel = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
+const { create } = require("../models/userModel");
 
 exports.createCashOrder = asyncHandler(async (req, res, next) => {
   const shippingPrice = 0;
@@ -148,6 +150,40 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
   });
 });
 
+createOnlineOrder = async (session) => {
+  const cartId = session.client_reference_id;
+  const shippingAddress = session.metadata;
+  const totalOrderPrice = session.amount_total / 100;
+
+  const cart = await cartModel.findById(cartId);
+  const user = await userModel.findOne({ email: session.customer_email });
+
+  const order = await orderModel.create({
+    user: user._id,
+    cartItems: cart.cartItems,
+    shippingAddress,
+    totalOrderPrice,
+    isPaid: true,
+    paidAt: Date.now(),
+    paymentMethod: "card",
+  });
+
+  if (order) {
+    const bulkOpts = cart.cartItems.map((item) => {
+      return {
+        updateOne: {
+          filter: { _id: item.product },
+          update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
+        },
+      };
+    });
+
+    await productModel.bulkWrite(bulkOpts, {});
+
+    await cartModel.findByIdAndDelete(cartId);
+  }
+};
+
 exports.webhookCheckout = asyncHandler(async (req, res, next) => {
   const sig = req.headers["stripe-signature"];
 
@@ -163,6 +199,8 @@ exports.webhookCheckout = asyncHandler(async (req, res, next) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
   if (event.type === "checkout.session.completed") {
-    console.log("create order here");
+    createOnlineOrder(event.data.object);
   }
+
+  res.status(200).json({ received: true });
 });
