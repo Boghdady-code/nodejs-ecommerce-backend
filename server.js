@@ -25,6 +25,15 @@ app.use(cors());
 app.options("*", cors());
 app.use(compression());
 
+//checkout webhook
+const { webhookCheckout } = require("./controllers/orderController");
+
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  webhookCheckout
+);
+
 dbConnection();
 app.use(express.json());
 
