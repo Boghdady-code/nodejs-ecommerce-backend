@@ -16,7 +16,7 @@ router.use(authController.protect);
 
 router
   .route("/checkout-session/:cartId")
-  .get(authController.allowedTo("user"), checkoutSession);
+  .post(authController.allowedTo("user"), checkoutSession);
 
 router
   .route("/:cartId")

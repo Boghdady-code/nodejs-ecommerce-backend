@@ -57,7 +57,7 @@ class ApiFeatures {
 
   paginate(countDocuments) {
     const page = parseInt(this.reqQuery.page) || 1;
-    const limit = parseInt(this.reqQuery.limit) || 12;
+    const limit = parseInt(this.reqQuery.limit) || 1000;
     const skip = (page - 1) * limit;
     let paginationResult = {};
     paginationResult.limit = limit;

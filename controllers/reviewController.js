@@ -9,32 +9,24 @@ exports.getReviews = asyncHandler(async (req, res, next) => {
   //
   const documentCounts = await ReviewModel.countDocuments();
   let filterOptions = {};
-  if (req.params.productId) {
-    filterOptions = {
-      product: req.params.productId,
-    };
-    const apiFeatures = new ApiFeatures(
-      ReviewModel.find(filterOptions),
-      req.query
-    )
-      .filter()
-      .sort()
-      .limitFields()
-      .search()
-      .paginate(documentCounts);
-
-    const paginationResult = apiFeatures.paginationResult;
-    const reviews = await apiFeatures.mongoQuery;
-    if (reviews.length === 0) {
-      return next(new ApiError("No reviews found", 404));
-    }
-    res.status(200).json({
-      paginationResult,
-      status: "success",
-      results: reviews.length,
-      data: reviews,
-    });
+  filterOptions = {
+    product: req.params.productId,
+  };
+  const apiFeatures = new ApiFeatures(
+    ReviewModel.find(filterOptions),
+    req.query
+  );
+  const paginationResult = apiFeatures.paginationResult;
+  const reviews = await apiFeatures.mongoQuery;
+  if (reviews.length == 0) {
+    return next(new ApiError("No reviews found", 404));
   }
+  res.status(200).json({
+    paginationResult,
+    status: "success",
+    results: reviews.length,
+    data: reviews,
+  });
 });
 
 // get specific Review

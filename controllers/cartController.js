@@ -6,6 +6,8 @@ const CouponModel = require("../models/couponModel");
 
 exports.addToCart = asyncHandler(async (req, res, next) => {
   const product = await ProductModel.findById(req.body.productId);
+  const quantity = req.body.quantity;
+
   let cart = await CartModel.findOne({ user: req.user._id });
   if (!cart) {
     cart = await CartModel.create({
@@ -15,6 +17,8 @@ exports.addToCart = asyncHandler(async (req, res, next) => {
           product: req.body.productId,
           color: req.body.color,
           price: product.price,
+          productImage: product.imageCover,
+          quantity: req.body.quantity,
         },
       ],
     });
@@ -33,6 +37,8 @@ exports.addToCart = asyncHandler(async (req, res, next) => {
         product: req.body.productId,
         color: req.body.color,
         price: product.price,
+        productImage: product.imageCover,
+        quantity: req.body.quantity,
       });
     }
   }

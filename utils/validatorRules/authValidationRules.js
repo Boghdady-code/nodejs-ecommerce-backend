@@ -17,7 +17,7 @@ exports.registerValidationRules = [
     .custom((val) => {
       return UserModel.findOne({ email: val }).then((user) => {
         if (user) {
-          return Promise.reject("Email already existsd");
+          return Promise.reject("Email already exists");
         }
       });
     }),
