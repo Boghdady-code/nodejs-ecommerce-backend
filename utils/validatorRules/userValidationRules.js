@@ -9,7 +9,6 @@ exports.getUserValidationRules = [
 ];
 
 exports.createUserValidationRules = [
-  param("id").isMongoId().withMessage("Invalid User ID Format"),
   body("name")
     .notEmpty()
     .withMessage("User name is required")

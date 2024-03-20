@@ -5,6 +5,7 @@ const productModel = require("../models/productModel");
 const userModel = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
+const ApiFeatures = require("../utils/apiFeatures");
 const { create } = require("../models/userModel");
 
 exports.createCashOrder = asyncHandler(async (req, res, next) => {
@@ -59,9 +60,19 @@ exports.getAllOrders = asyncHandler(async (req, res, next) => {
   if (req.filterObj) {
     filterObj = req.filterObj;
   }
-  const orders = await orderModel.find(filterObj);
+  const documentCounts = await orderModel.countDocuments();
+  const apiFeatures = new ApiFeatures(orderModel.find(filterObj), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .search("Orders")
+    .paginate(documentCounts);
+  const paginationResult = apiFeatures.paginationResult;
+  const orders = await apiFeatures.mongoQuery;
   res.status(200).json({
+    paginationResult,
     status: "success",
+    results: orders.length,
     data: orders,
   });
 });
@@ -135,8 +146,8 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
       },
     ],
     mode: "payment",
-    success_url: "https://elfouad.000webhostapp.com/orders",
-    cancel_url: "https://elfouad.000webhostapp.com/cart",
+    success_url: "https://ecommerce-backend-52d0.onrender.com/profile/orders",
+    cancel_url: "https://ecommerce-backend-52d0.onrender.com/cart",
     customer_email: req.user.email,
     client_reference_id: req.params.cartId,
     metadata: req.body.shippingAddress,
